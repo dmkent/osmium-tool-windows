@@ -1,0 +1,52 @@
+#-----------------------------------------------------------------------------
+#
+#  Configuration for continuous integration service at appveyor.com
+#
+#-----------------------------------------------------------------------------
+
+environment:
+  matrix:
+  - config: Debug
+  - config: Release
+
+shallow_clone: true
+
+# Operating system (build VM template)
+os: Visual Studio 2015
+
+platform: x64
+
+# scripts that are called at very beginning, before repo cloning
+init:
+
+# clone directory
+clone_folder: c:\projects\osmium-tool-windows
+
+install:
+  - cd c:\projects
+  - git clone --depth 1 https://github.com/osmcode/osmium-tool
+  - git clone --depth 1 https://github.com/osmcode/libosmium
+  - git clone --depth 1 https://github.com/mapbox/protozero
+
+build_script:
+  - cd c:\projects/osmium-tool
+  - build-appveyor.bat
+
+after_build:
+  - cd c:\projects
+  - mkdir osmium-tool-bin
+  - set dllsuffix=""
+  - if "%config%"=="Debug" set dllsuffix="d"
+  - appveyor DownloadFile "https://raw.githubusercontent.com/libexpat/libexpat/master/expat/COPYING" -FileName osmium-tool-bin\COPYING-expat.txt
+  - appveyor DownloadFile "https://raw.githubusercontent.com/asimonov-im/bzip2/master/LICENSE" -FileName osmium-tool-bin\LICENSE-bzip2.txt
+  - copy /y C:\projects\osmium-tool-windows\README-INSTALL.md osmium-tool-bin\README.md
+  - copy /y C:\projects\osmium-tool\LICENSE.txt osmium-tool-bin
+  - copy /y C:\projects\osmium-tool\LICENSE-rapidjson.txt osmium-tool-bin
+  - copy /y C:\projects\osmium-tool\build\src\%config%\osmium.exe osmium-tool-bin
+  - copy /y C:\projects\expat.v140.2.2.5\build\native\bin\x64\%config%\libexpat%dllsuffix%.dll osmium-tool-bin
+  - copy /y C:\projects\bzip2.v140.1.0.6.9\build\native\bin\x64\MT-%config%\bzip2%dllsuffix%.dll osmium-tool-bin
+  - 7z a c:\projects\osmium-tool-windows\osmium_%config%_%platform%.zip osmium-tool-bin -tzip
+
+artifacts:
+  - path: c:\projects\osmium-tool-windows\osmium_%config%_%platform%.zip
+    name: osmium-tool-%config%-%platform%
