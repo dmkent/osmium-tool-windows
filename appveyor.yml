@@ -48,5 +48,5 @@ after_build:
   - 7z a c:\projects\osmium-tool-windows\osmium_%config%_%platform%.zip osmium-tool-bin -tzip
 
 artifacts:
-  - path: c:\projects\osmium-tool-windows\osmium_%config%_%platform%.zip
+  - path: osmium_%config%_%platform%.zip
     name: osmium-tool-%config%-%platform%
